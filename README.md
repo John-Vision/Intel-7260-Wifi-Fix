@@ -61,7 +61,9 @@ It will ask what editor you want to use. Pick the one you want. (As the prompt w
 Now you need to add the following three lines, replacing the path with the actual path to your .fixwifi file. (Don't enter the path as a shortcut like "~/fixwifi" but actually go ahead and type out the full path.)
 
 `* * * * * /path/to/.fixwifi`
+
 `* * * * * sleep 20; /path/to/.fixwifi`
+
 `* * * * * sleep 40; /path/to/.fixwifi`
 
 When you have added these three lines, modified to reflect the actual path, save the file and you're done! (If you chose nano, press Ctrl-X to finish editing and then press "y" in response to "Save modified buffer?" and then just press "Enter" to accept the name of the file you want to send it to.)
