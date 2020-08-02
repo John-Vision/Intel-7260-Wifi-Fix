@@ -15,177 +15,35 @@ I then set up some cron jobs which would run my modified script every 20 seconds
 
 # How to set this up
 
+The setup does take a few minutes and some preparation, but it it WELL worth it, and I will take you through step-by-step!
+
 First, you need to have `ifconfig` installed on your system. I think it would be relatively easy to modify the script to use `ip` instead, or even to detect which of these were available on your system, but I have not implemented that yet. Anyway, as it is now, you want to make sure you have `ifconfig` installed so first just run:
 `sudo apt install net-tools`
-Then create a file called `.fixwifi` in your home directory. (I prepended this file with a dot so that it would act as a hidden file.)
-`touch ~/.fixwifi`
-If you want to make sure that worked, run the following to list the files in your home directory. You should see the newly created `.fixwifi` listed last.
-`ls -t -r -a`
-Now you want to make the file executable:
-`chmod +x ~/.fixwifi`
-Now you have to add the contents to this file. I prefer to use the nano editor, so for me the command would be:
-`sudo nano ~/.fixwifi`
-Then you have to copy/paste the follwing into your empty .fixwifi file:
+Now that you hve `ifconfig` installed, you can now proceed to download these two files into your home directory:
 
-`#!/bin/bash
+`https://raw.githubusercontent.com/John-Vision/Intel-7260-Wifi-Fix/master/fixwifi`
+`https://raw.githubusercontent.com/John-Vision/Intel-7260-Wifi-Fix/master/fixwifi-force
+`
 
-#############################################################################################################
-#                                                                                                           #
-# This script requires "ifconfig" to be installed. If not installed, then do so now!                        #
-# sudo apt install net-tools                                                                                #
-# The interface name is set below as "wlp3s0". If yours is different seach through and replace with yours.  #
-#                                                                                                           #
-#############################################################################################################
+To download them from within the terminal copy/paste/run the following lines
 
-# You need to know the designations for your wifi interface.
-# You can find these out by running: sudo lshw -C network
-# Look through the output, and replace the information between the quotes, as necessary, in the following settings.
+`cd ~`
+`wget https://raw.githubusercontent.com/John-Vision/Intel-7260-Wifi-Fix/master/fixwifi`
+`wget https://raw.githubusercontent.com/John-Vision/Intel-7260-Wifi-Fix/master/fixwifi-force`
 
-# product
-wirelessPCI=$(lspci |grep "Wireless 7260")
+Now that you have these two file in your home directory, you need to make them executable.
 
-# logical name
-interface="wlp3s0"
+`chmod +x ~/fixwifi`
+`chmod +x ~/fixwifi-force`
 
-# Intel voodoo. The setting below is known to work with the Wireless 7260. If we knew what this value should be
-# for other Intel chipsets, this script should work for them as well. Maybe it's the same for multiple chipsets?
-voodoo="0x50.B=0x40"
+These two files are essentially the same, but with one difference: `fixwifi` first checks to see if you wifi is up and running; if it is then it just exits, but if not then it goes ahead and reset your wifi. 'fixwifi-force', on the other hand, does not bother to perform any check, and will reset your wifi whether it's already running or not.
 
-# Don't change anything below this line.
-###########################################################################################################
-# If this script works, then do "sudo crontab -e" and # add the following, without the initial hash (#) in each line. 
-#* * * * * /home/kflynn/.fixwifi
-#* * * * * sleep 20; /home/kflynn/.fixwifi
-#* * * * * sleep 40; /home/kflynn/.fixwifi
-###########################################################################################################
+Both of these files have some settings which you can change manually. Assuming that you have the Intel 7260 (which is what this is all about!) you shouldn't have to change anything, except *possibly* the line in each file (about line 19 in each) which says `interface="wlp3s0"`. Your interface may be different: typical values are things like, wlan0, wlp2s0, and the like. You can check your interface by executing `sudo lshw -C network | grep "logical name: w"`, as long as you run this while your wifi is working. So, if needed, just change the interface setting to whatever is appropriate for you, in each of these two files.
 
-#---------------------------------------------------------------------------------------
-# Assume wifi okay at first. If there are any problems during checks, this gets changed.
-wifiOK=true
+Once you have all this done, try `~/fixwifi-force`. If everything worked you should see your wifi get disconnected (if it was already connected) and then come back online. If this did not happen, then you need to check the output, and see if there are any errors. The most common (and easy to fix) error would be having the interface set wrong. (See paragraph above.) Another possibility is that you don't have an Intel 7260, in which case you would also have to change the part between the quotes in the setting for "wirelessPCI," and probably also the setting for "voodoo". (I have no idea of how to help you with the voodoo setting. This part is pretty much a mystery to me.)
 
-# This will refresh the list of networks in NetworkManager. Comment out if not needed. 
-nmcli device wifi list
+Once you have `~/fixwifi-force` up and running, you are really in luck! Just make sure you have the same settings in `fixwifi` that worked for you in `fixwifi-force`. Now all you need to do is set up some cron jobs to run `fixwifi` periodically in the background, so you never have to think about it again!
 
-# Check if wifi is okay using: sudo lshw -C network | grep "pciexpress"
-# if "bus_master" is not in the output, this indicates a problem
-capabilities=$(sudo lshw -C network | grep "pciexpress")
-    if [[ $capabilities == *"bus_master"* ]]; then
-        echo "OKAY - bus_master found in: $capabilities"
-    else
-        wifiOK=false
-        echo "OOPS - bus_master missing in: $capabilities"
-    fi
-
-# Check if wifi is okay using: nmcli networking connectivity 
-# "unknown" and "none" indicate a problem.
-connectivity=$(nmcli networking connectivity)
-echo "CONNECTIVITY: $connectivity"
-    if [ $connectivity = "unknown" ]; then
-        wifiOK=false
-        echo "OOPS - nmcli networking connectivity: unknown"
-    fi
-    if [ $connectivity = "none" ]; then
-        wifiOK=false
-        echo "OOPS - nmcli networking connectivity: none"
-    fi
-    
-# Check if wifi is okay using: ifconfig $interface up
-# anything other than "0" indicates a problem.
-sudo ifconfig $interface up
-initialExitCode=$?
-    if [ $initialExitCode -eq 0 ]; then
-        echo "OKAY - iconfig $interface up (should be 0): $initialExitCode"
-    else
-        wifiOK=false
-        echo "OOPS - iconfig $interface up (should be 0): $initialExitCode"
-    fi
-
-# If wifi is okay, then say so and return; otherwise the script will continue.
-if $wifiOK;then
-    echo "WIFI OKAY, RETURNING"
-    exit 1
-fi
-#---------------------------------------------------------------------------------------
-
-# If we got to this point then we have detected a problem with wifi (wifiOK=false).
-# The rest of this script will get it back up and running!
-    
-# Figure out what pci slot Linux has assigned the Network controller: Intel Corporation Wireless 7260
-pci=$(echo ${wirelessPCI} | awk '{ print $1 }')
-devicePath="/sys/bus/pci/devices/0000:$pci/remove"
-
-# Not the best solution as this script can hang. 
-# But since if this script fails the ONLY way to revive the wifi anyway is a reboot...
-# Feel free to improve the script if you have the scriptfu ninja skills to do so.
-while true; do
-
-    # Tell Linux to remove the wifi card from the PCI device list only if it exists in the first place.
-    if [ -f $devicePath ]; then
-        echo '----removing device'
-        echo 1 | sudo tee $devicePath > /dev/null
-        sleep 1
-    fi
-
-    # Reprobe the driver modules in case we have removed them in a failed attempt to wake the network card.
-    echo '----reprobing drivers'
-    sudo modprobe iwlmvm
-    sudo modprobe iwlwifi
-    
-    # Try to have Linux bring the network card back online as a PCI device. 
-    echo '----pci rescan'
-    echo 1 | sudo tee /sys/bus/pci/rescan > /dev/null
-    sleep 1
-
-    # Check if Linux managed to bring the network card back online as a PCI device.
-    if [ -f $devicePath ]; then
-        echo '----device is back'
-
-        # Looks like we are back in business. 
-        # So we try to set the PCI slot with some voodoo I don't understand that the Intel devs told me to try.
-        # https://bugzilla.kernel.org/show_bug.cgi?id=191601
-        sudo setpci -s $pci $voodoo
-
-        sleep 1
-        wifiId=$(rfkill list |grep Wireless |awk -F: '{ print $1 }')
-        echo "----rfkill unblock wireless device: $wifiId"
-        sudo rfkill unblock $wifiId
-
-        sleep 1
-        # Bring the wireless network interface up.
-        sudo ifconfig $interface up
-
-        # Did the wifi interface actually go live?
-        exitCode=$?
-        echo "----device UP status $exitCode"
-        if [ $exitCode -eq 0 ];then
-
-            # This should be the default for wireless devices as it is well documented that enabling power management causes problems.
-            sudo iwconfig $interface power off
-
-            # The exit code will be the exit code of our attempt at turning power management off for the interface.
-            break
-        fi
-    else
-        # The restart attempt failed, so we need to remove the the wifi driver modules and loop back in another attempt to revive the wifi.
-        echo "----WIFI RESTART FAILED - ATTEMPTING AGAIN"
-        sudo modprobe -r iwlmvm
-        sudo modprobe -r iwlwifi
-    fi
-done
-
-echo "DONE - WIFI SHOULD RESTART NOW."`
-
-Lines 45, 48, and 52, for "product" "logical name" and "Intel voodoo," must reflect your own setup. The settings I have work for me. Here's how you can find your settings: 
-`sudo lshw -C network`
-In the listing for your wireless network, put whatever it says for "product" between the quotes in line 45.
-Put whatever it says for "logical name" between the quotes in line 48.
-For line 52, I have no idea of how to find your setting. I just know that this is the setting which works for the Intel 7260.
-
-You can then run the file, just to see that it works. Note that if you run it when your wifi is working, it will give a few messages, the last of which will be, "WIFI OKAY - RETURNING." If you run it when your wifi is NOT working, you will also see a number of messages, the last of which will be "DONE - WIFI SHOULD RESTART NOW." And then, wonderfully, your wifi should just restart! To run the file:
-`~/.fixwifi`
-You now have a very easy way to restart your wifi, without needing to restart your computer!
-
-Once all the above is working, you'll want to set up a cron job to run this in the background, so you never have to think about it again!
 If this is the first time you are using cron, the following makes sure it can run in the background:
 
 `sudo systemctl enable cron`
@@ -196,7 +54,7 @@ Now it's time to go ahead and set up a crontab as root:
 
 It will ask what editor you want to use. Pick the one you want. (As the prompt will tell you, nano is the simplest.)
 
-Now you need to add the following three lines, replacing the path with the actual path to your .fixwifi file:
+Now you need to add the following three lines, replacing the path with the actual path to your .fixwifi file. (Don't enter the path as a shortcut like "~/fixwifi" but actually go ahead and type out the full path.)
 
 `* * * * * /path/to/.fixwifi`
 `* * * * * sleep 20; /path/to/.fixwifi`
@@ -204,4 +62,4 @@ Now you need to add the following three lines, replacing the path with the actua
 
 When you have added these three lines, modified to reflect the actual path, save the file and you're done! (If you chose nano, press Ctrl-X to finish editing and then press "y" in response to "Save modified buffer?" and then just press "Enter" to accept the name of the file you want to send it to.)
 
-That's it!
+That's it! Enjoy your new, stress free Intel 7260 Wifi!
