@@ -22,6 +22,7 @@ First, you need to have `ifconfig` installed on your system. I think it would be
 Now that you hve `ifconfig` installed, you can now proceed to download these two files into your home directory:
 
 `https://raw.githubusercontent.com/John-Vision/Intel-7260-Wifi-Fix/master/fixwifi`
+
 `https://raw.githubusercontent.com/John-Vision/Intel-7260-Wifi-Fix/master/fixwifi-force
 `
 
@@ -29,11 +30,13 @@ To download them from within the terminal copy/paste/run the following lines
 
 `cd ~`
 `wget https://raw.githubusercontent.com/John-Vision/Intel-7260-Wifi-Fix/master/fixwifi`
+
 `wget https://raw.githubusercontent.com/John-Vision/Intel-7260-Wifi-Fix/master/fixwifi-force`
 
 Now that you have these two file in your home directory, you need to make them executable.
 
 `chmod +x ~/fixwifi`
+
 `chmod +x ~/fixwifi-force`
 
 These two files are essentially the same, but with one difference: `fixwifi` first checks to see if you wifi is up and running; if it is then it just exits, but if not then it goes ahead and reset your wifi. 'fixwifi-force', on the other hand, does not bother to perform any check, and will reset your wifi whether it's already running or not.
