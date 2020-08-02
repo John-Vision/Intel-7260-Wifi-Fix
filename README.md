@@ -29,6 +29,7 @@ Now that you hve `ifconfig` installed, you can now proceed to download these two
 To download them from within the terminal copy/paste/run the following lines
 
 `cd ~`
+
 `wget https://raw.githubusercontent.com/John-Vision/Intel-7260-Wifi-Fix/master/fixwifi`
 
 `wget https://raw.githubusercontent.com/John-Vision/Intel-7260-Wifi-Fix/master/fixwifi-force`
