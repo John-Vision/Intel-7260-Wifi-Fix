@@ -5,7 +5,7 @@
 A fix for Intel 7260 WIFI PCI cards, which intermittently and unpredictably stop working on Linux.
 (With a little bit of know how, this might easily be adapted to support other chipsets.)
 
-The Intel 7260 WIFI PCI cards have fantasitic wifi capabilities, but are notorious for intermittently and unpredictably shutting down and becoming completely non-responsive, with no way of restarting the card except for rebooting the system.
+The Intel 7260 WIFI PCI cards have fantasitic wifi capabilities, but on Linux are notorious for intermittently and unpredictably shutting down and becoming completely non-responsive, with no way of restarting the card except for rebooting the system.
 
 After a LOT of searching I found a couple of scripts which could be run that would restart the card. While that was nice, the card would definitely still go down from time to time, and then require the user to manually run the script. This was an improvement, but not very convenient, and I wanted a way to automate the process so I could simply forget about it and have it just work.
 
