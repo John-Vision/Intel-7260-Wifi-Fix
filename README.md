@@ -1,4 +1,7 @@
 # Intel-7260-Wifi-Fix
+
+(Please leave a comment - and maybe an upvote - to let me know how this worked for you: https://askubuntu.com/questions/1262557/cannot-get-intel-7260-to-work-properly-on-ubuntu-20-04-disconnects-intermittent)
+
 A fix for Intel 7260 WIFI PCI cards, which intermittently and unpredictably stop working on Linux.
 (With a little bit of know how, this might easily be adapted to support other chipsets.)
 
@@ -69,3 +72,5 @@ Now you need to add the following three lines, replacing the path with the actua
 When you have added these three lines, modified to reflect the actual path, save the file and you're done! (If you chose nano, press Ctrl-X to finish editing and then press "y" in response to "Save modified buffer?" and then just press "Enter" to accept the name of the file you want to send it to.)
 
 That's it! Enjoy your new, stress free Intel 7260 Wifi!
+
+(Please leave a comment - and maybe an upvote - to let me know how this worked for you: https://askubuntu.com/questions/1262557/cannot-get-intel-7260-to-work-properly-on-ubuntu-20-04-disconnects-intermittent)
