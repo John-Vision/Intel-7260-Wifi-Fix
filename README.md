@@ -5,7 +5,7 @@
 Note: Both from clues found on the Internet, as well as personal experience, it seems that there are certain Intel 7260 WIFI PCI cards which actually work fine, and others which have the problems addressed herein. A *much* better fix than the method described below is to simply purchase the right card, because even with the fix below your wifi connection will still occassionally be going on and off, which is certainly not ideal, even though the fix below does make it automatically reconnect.
 
 I originally bought this wifi card: https://www.amazon.com/gp/product/B00MV3N7UO/ref=ppx_yo_dt_b_asin_title_o08_s00?ie=UTF8&psc=1
-If you look at the picture of the card, you can see that the Model is 7260HMW BN
+If you look at the picture of the card, you can see that the Model is 7260HMW BN.
 Once I got the card it worked great *when* it worked, and for the times it stopped working I devised the fix described below.
 
 After a few weeks I then purchased this card: https://www.amazon.com/gp/product/B01E85QIFI/ref=ppx_yo_dt_b_asin_title_o01_s00?ie=UTF8&psc=1
