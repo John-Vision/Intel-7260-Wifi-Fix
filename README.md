@@ -21,18 +21,31 @@ Also, the output of `sudo lshw -C network` (the wifi part) could also be of use,
 
 Here is my output for the first card, the one with the problems:
   `*-network
+  
        description: Wireless interface
+       
        product: Wireless 7260
+       
        vendor: Intel Corporation
+       
        physical id: 0
+       
        bus info: pci@0000:03:00.0
+       
        logical name: wlp3s0
+       
        version: bb
+       
        serial: 7c:5c:f8:dc:f4:f1
+       
        width: 64 bits
+       
        clock: 33MHz
+       
        capabilities: pm msi pciexpress bus_master cap_list ethernet physical wireless
+       
        configuration: broadcast=yes driver=iwlwifi driverversion=5.4.0-40-lowlatency firmware=17.3216344376.0 ip=172.20.20.20 latency=0 link=yes multicast=yes wireless=IEEE 802.11
+       
        resources: irq:34 memory:f1c00000-f1c01fff`
        
 Here is my output for the second card, the one that worked perfectly:
