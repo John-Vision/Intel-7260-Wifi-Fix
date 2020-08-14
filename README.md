@@ -2,7 +2,62 @@
 
 (Please leave a comment - and maybe an upvote - to let me know how this worked for you: https://askubuntu.com/questions/1262557/cannot-get-intel-7260-to-work-properly-on-ubuntu-20-04-disconnects-intermittent)
 
-A fix for Intel 7260 WIFI PCI cards, which intermittently and unpredictably stop working on Linux.
+Note: Both from clues found on the Internet, as well as personal experience, it seems that there are certain Intel 7260 WIFI PCI cards which actually work fine, and others which have the problems addressed herein. A *much* better fix than the method described below is to simply purchase the right card, because even with the fix below your wifi connection will still occassionally be going on and off, which is certainly not ideal, even though the fix below does make it automatically reconnect.
+
+I originally bought this wifi card: https://www.amazon.com/gp/product/B00MV3N7UO/ref=ppx_yo_dt_b_asin_title_o08_s00?ie=UTF8&psc=1
+If you look at the picture of the card, you can see that the Model is 7260HMW BN
+Once I got the card it worked great *when* it worked, and for the times it stopped working I devised the fix described below.
+
+After a few weeks I then purchased this card: https://www.amazon.com/gp/product/B01E85QIFI/ref=ppx_yo_dt_b_asin_title_o01_s00?ie=UTF8&psc=1
+If you look at the picture of that card, you can see that the Model is 7260HMN.
+Once I got this card I removed the fix from my laptop, and just let it run to see what would happen.
+It worked PERFECTLY!
+
+My advice is that if you want an Intel 7260 WIFI PCI card in your machine, that you are careful to purchase the Model 7260HMW - not the 7260HMW BN, and probably not the 7260HMW NB or the 7260HMW AC. There is a comparison of these various cards, and the 3160HMW here: https://www.legitreviews.com/intel-7260hmwg-802-11ac-versus-intel-7260hmw-bn-802-11n_135541
+As you can see, the 7260HMW has the best and most complete features, and it also happens to be the one that actually works perfectly on Linux!
+
+If anyone comes across this post, please comment at https://askubuntu.com/questions/1262557/cannot-get-intel-7260-to-work-properly-on-ubuntu-20-04-disconnects-intermittent to share your experience with others, being very careful to note which card you have. If you can physically look at your card (which would require opening your machine) please report the Model printed on the card itself.
+Also, the output of `sudo lshw -C network` (the wifi part) could also be of use, in particular the "version."
+
+Here is my output for the first card, the one with the problems:
+  `*-network
+       description: Wireless interface
+       product: Wireless 7260
+       vendor: Intel Corporation
+       physical id: 0
+       bus info: pci@0000:03:00.0
+       logical name: wlp3s0
+       version: bb
+       serial: 7c:5c:f8:dc:f4:f1
+       width: 64 bits
+       clock: 33MHz
+       capabilities: pm msi pciexpress bus_master cap_list ethernet physical wireless
+       configuration: broadcast=yes driver=iwlwifi driverversion=5.4.0-40-lowlatency firmware=17.3216344376.0 ip=172.20.20.20 latency=0 link=yes multicast=yes wireless=IEEE 802.11
+       resources: irq:34 memory:f1c00000-f1c01fff`
+       
+Here is my output for the second card, the one that worked perfectly:
+  `*-network
+       description: Wireless interface
+       product: Wireless 7260
+       vendor: Intel Corporation
+       physical id: 0
+       bus info: pci@0000:03:00.0
+       logical name: wlp3s0
+       version: 73
+       serial: a0:a8:cd:2c:f3:da
+       width: 64 bits
+       clock: 33MHz
+       capabilities: pm msi pciexpress bus_master cap_list ethernet physical wireless
+       configuration: broadcast=yes driver=iwlwifi driverversion=5.4.0-42-lowlatency firmware=17.3216344376.0 ip=172.20.20.20 latency=0 link=yes multicast=yes wireless=IEEE 802.11
+       resources: irq:33 memory:f1c00000-f1c01fff`
+       
+The only differences are the *version* and the *serial,* and I think it is actually the *version* which is pertinent here.
+
+I have done a lot of the troubleshooting already. It would be nice to get some feedback at https://askubuntu.com/questions/1262557/cannot-get-intel-7260-to-work-properly-on-ubuntu-20-04-disconnects-intermittent so this problem can finally be resolved for the community.
+
+And...if you are stuck with a misbehaving Intel 7260 for now...here's the fix I came up with for that:
+       
+# A fix for Intel 7260 WIFI PCI cards, which intermittently and unpredictably stop working on Linux.
 (With a little bit of know how, this might easily be adapted to support other chipsets.)
 
 The Intel 7260 WIFI PCI cards have fantasitic wifi capabilities, but on Linux are notorious for intermittently and unpredictably shutting down and becoming completely non-responsive, with no way of restarting the card except for rebooting the system.
