@@ -21,7 +21,8 @@ Also, the output of `sudo lshw -C network` (the wifi part) could also be of use,
 
 Here is my output for the first card, the one with the problems:
   
-  `*-network
+  `
+  *-network
        description: Wireless interface
        product: Wireless 7260
        vendor: Intel Corporation
