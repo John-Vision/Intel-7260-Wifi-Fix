@@ -52,7 +52,7 @@ Here is my output for the second card, the one that worked perfectly:
        resources: irq:33 memory:f1c00000-f1c01fff`
        
 The only differences are the *version* and the *serial,* and I think it is actually the *version* which is pertinent here.
-
+ 
 I have done a lot of the troubleshooting already. It would be nice to get some feedback at https://askubuntu.com/questions/1262557/cannot-get-intel-7260-to-work-properly-on-ubuntu-20-04-disconnects-intermittent so this problem can finally be resolved for the community.
 
 And...if you are stuck with a misbehaving Intel 7260 for now...here's the fix I came up with for that:
