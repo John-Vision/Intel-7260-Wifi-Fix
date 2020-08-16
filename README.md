@@ -68,7 +68,7 @@ After a LOT of searching I found a couple of scripts which could be run that wou
 
 I took the script and modified it just a bit, and also added a few checks at the beginning of the script, which would check in various ways whether the the wifi card was working or not. (At first, the only checks I had were based upon `nmcli` and `ifconfig` but it seemed that were failures which these would not catch. I then added another check based on the output of `lshw`, because while debugging and suffering with this problem I had noticed different outputs of `lshw` depending upon whether the card was working or not; specifically, when the card was working I would see that "bus_master" was listed under the capabilities for the device, but that this would go missing when it had failed, or even was just starting to fail.) Anyway, once these checks were in place, once the script was run, the following would happen:
 
-  (1) If the wifi was found to be WORKING, the the script would simply exit.
+  (1) If the wifi was found to be WORKING, thea the script would simply exit.
   (2) If the wifi was found to be NOT WORKING, then the script would continue and perform the wifi reset.
   
 I then set up some cron jobs which would run my modified script every 20 seconds. Once I had this all set up, my wifi problems were over!
