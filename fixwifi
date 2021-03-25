@@ -22,12 +22,6 @@ voodoo="0x50.B=0x40"
 # Get new interface name - it may change after dropping!
 interface=$(nmcli device | grep wifi | awk '{ print $1 }')
 
-# pci with domain (more general if a machine has a different domain - not usual)
-PCIwD=$(lspci -D | grep "$product" | awk '{ print $1 }')
-
-# pci without domain
-pci=$(lspci | grep "$product" | awk '{ print $1 }')
-
 # Assume wifi okay at first. If there are any problems during checks, this gets changed.
 wifiOK=true
 
@@ -80,6 +74,12 @@ fi
 # Feel free to improve the script if you have the scriptfu ninja skills to do so.
 
 # Figure out what pci slot Linux has assigned the Network controller: Intel Corporation Wireless 7260
+
+# pci with domain (more general if a machine has a different domain - not usual)
+PCIwD=$(lspci -D | grep "$product" | awk '{ print $1 }')
+
+# pci without domain
+pci=$(lspci | grep "$product" | awk '{ print $1 }')
 
 devicePath="/sys/bus/pci/devices/$PCIwD/remove"
 
