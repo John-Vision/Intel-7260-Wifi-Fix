@@ -1,22 +1,11 @@
 #!/bin/bash
 
-#############################################################################################################
-#                                                                                                           #
-# This script requires "ifconfig" to be installed. If not installed, then do so now!                        #
-# sudo apt install net-tools                                                                                #
-# The interface name is set below as "wlp3s0". If yours is different seach through and replace with yours.  #
-#                                                                                                           #
-#############################################################################################################
-
 # You need to know the designations for your wifi interface.
 # You can find these out by running: sudo lshw -C network
-# Look through the output, and replace the information between the quotes, as necessary, in the following settings.
+# Look through the output, and replace "Wireless 7260" if necessary
 
-# product
-wirelessPCI=$(lspci |grep "Wireless 7260")
-
-# logical name
-interface="wlp3s0"
+#product
+product="Wireless 7260"
 
 # Intel voodoo. The setting below is known to work with the Wireless 7260. If we knew what this value should be
 # for other Intel chipsets, this script should work for them as well. Maybe it's the same for multiple chipsets?
@@ -30,18 +19,17 @@ voodoo="0x50.B=0x40"
 #* * * * * sleep 40; /home/kflynn/.fixwifi
 ###########################################################################################################
 
-#---------------------------------------------------------------------------------------
+# Get new interface name - it may change after dropping!
+interface=$(nmcli device | grep wifi | awk '{ print $1 }')
+
 # Assume wifi okay at first. If there are any problems during checks, this gets changed.
 wifiOK=true
 
-# This will refresh the list of networks in NetworkManager. Comment out if not needed. 
-nmcli device wifi list
-
-# Check if wifi is okay using: sudo lshw -C network | grep "pciexpress"
+# Check if wifi is okay using: sudo lshw -C network | grep "capabilities" | grep "wireless")
 # if "bus_master" is not in the output, this indicates a problem
-capabilities=$(sudo lshw -C network | grep "pciexpress")
-    if [[ $capabilities == *"bus_master"* ]]; then
-        echo "OKAY - bus_master found in: $capabilities"
+capabilities=$(sudo lshw -C network | grep "capabilities" | grep "wireless")
+    if [[ "$capabilities" == *"bus_master"* ]]; then
+        echo "OKAY - bus_master found"
     else
         wifiOK=false
         echo "OOPS - bus_master missing in: $capabilities"
@@ -50,98 +38,106 @@ capabilities=$(sudo lshw -C network | grep "pciexpress")
 # Check if wifi is okay using: nmcli networking connectivity 
 # "unknown" and "none" indicate a problem.
 connectivity=$(nmcli networking connectivity)
-echo "CONNECTIVITY: $connectivity"
+#echo "CONNECTIVITY: $connectivity"
     if [ $connectivity = "unknown" ]; then
         wifiOK=false
         echo "OOPS - nmcli networking connectivity: unknown"
-    fi
-    if [ $connectivity = "none" ]; then
+    elif [ $connectivity = "none" ]; then
         wifiOK=false
         echo "OOPS - nmcli networking connectivity: none"
     fi
     
-# Check if wifi is okay using: ifconfig $interface up
+# Check if wifi is okay using: ip link set $interface up
 # anything other than "0" indicates a problem.
-sudo ifconfig $interface up
-initialExitCode=$?
-    if [ $initialExitCode -eq 0 ]; then
-        echo "OKAY - iconfig $interface up (should be 0): $initialExitCode"
+sudo ip link set $interface up
+exitCode=$?
+    if [ $exitCode -eq 0 ]; then
+        echo "OKAY - $interface is up"
     else
         wifiOK=false
-        echo "OOPS - iconfig $interface up (should be 0): $initialExitCode"
+        echo "OOPS - \"ip link set $interface up\" should return 0. Returned: $exitCode"
     fi
 
 # If wifi is okay, then say so and return; otherwise the script will continue.
-if $wifiOK;then
-    echo "WIFI OKAY, RETURNING"
+if $wifiOK; then
+    echo "EXITING - WIFI OKAY!"
+    sudo iwconfig $interface power off
     exit 1
 fi
-#---------------------------------------------------------------------------------------
 
+#---------------------------------------------------------------------------------------
 # If we got to this point then we have detected a problem with wifi (wifiOK=false).
 # The rest of this script will get it back up and running!
-    
-# Figure out what pci slot Linux has assigned the Network controller: Intel Corporation Wireless 7260
-pci=$(echo ${wirelessPCI} | awk '{ print $1 }')
-devicePath="/sys/bus/pci/devices/0000:$pci/remove"
 
 # Not the best solution as this script can hang. 
 # But since if this script fails the ONLY way to revive the wifi anyway is a reboot...
 # Feel free to improve the script if you have the scriptfu ninja skills to do so.
-while true; do
 
+# Figure out what pci slot Linux has assigned the Network controller: Intel Corporation Wireless 7260
+
+# pci with domain (more general if a machine has a different domain - not usual)
+PCIwD=$(lspci -D | grep "$product" | awk '{ print $1 }')
+
+# pci without domain
+pci=$(lspci | grep "$product" | awk '{ print $1 }')
+
+devicePath="/sys/bus/pci/devices/$PCIwD/remove"
+
+while true; do
     # Tell Linux to remove the wifi card from the PCI device list only if it exists in the first place.
     if [ -f $devicePath ]; then
-        echo '----removing device'
-        echo 1 | sudo tee $devicePath > /dev/null
+        echo '----Removing Device'
+        echo "1" > sudo tee $devicePath
+        sleep 1
+        
+        # Try to have Linux bring the network card back online as a PCI device. 
+	    echo '----Re-scanning'
+	    echo "1" > sudo tee /sys/bus/pci/rescan
+	    sleep 2
+
+        echo "----Removing WIFI Modules"
+        sudo modprobe -r iwlmvm
+        
+	    # Reprobe the driver modules in case we have removed them in a failed attempt to wake the network card.
+        echo '----Re-probing Modules'
+        sudo modprobe iwlmvm iwlwifi
         sleep 1
     fi
 
-    # Reprobe the driver modules in case we have removed them in a failed attempt to wake the network card.
-    echo '----reprobing drivers'
-    sudo modprobe iwlmvm
-    sudo modprobe iwlwifi
-    
-    # Try to have Linux bring the network card back online as a PCI device. 
-    echo '----pci rescan'
-    echo 1 | sudo tee /sys/bus/pci/rescan > /dev/null
-    sleep 1
-
-    # Check if Linux managed to bring the network card back online as a PCI device.
+    # Check (again) if Linux managed to bring the network card back online as a PCI device.
     if [ -f $devicePath ]; then
-        echo '----device is back'
+        echo '----Device is back!'
 
         # Looks like we are back in business. 
         # So we try to set the PCI slot with some voodoo I don't understand that the Intel devs told me to try.
         # https://bugzilla.kernel.org/show_bug.cgi?id=191601
         sudo setpci -s $pci $voodoo
-
         sleep 1
+        
         wifiId=$(rfkill list |grep Wireless |awk -F: '{ print $1 }')
         echo "----rfkill unblock wireless device: $wifiId"
         sudo rfkill unblock $wifiId
 
-        sleep 1
+        # Get new interface name - it may change after dropping!
+	interface=$(nmcli device | grep wifi | awk '{ print $1 }')
+        
         # Bring the wireless network interface up.
-        sudo ifconfig $interface up
+        echo "Attempting to set up interface: $interface"
+        sudo ip link set $interface up
+        sleep 2
 
         # Did the wifi interface actually go live?
         exitCode=$?
-        echo "----device UP status $exitCode"
-        if [ $exitCode -eq 0 ];then
-
+        echo "----Device UP status: $exitCode"
+        if [ $exitCode -eq 0 ]; then
             # This should be the default for wireless devices as it is well documented that enabling power management causes problems.
-            sudo iwconfig $interface power off
-
+	    echo "Disabling Power Management"
+	    sudo iwconfig $interface power off
             # The exit code will be the exit code of our attempt at turning power management off for the interface.
             break
         fi
-    else
-        # The restart attempt failed, so we need to remove the the wifi driver modules and loop back in another attempt to revive the wifi.
-        echo "----WIFI RESTART FAILED - ATTEMPTING AGAIN"
-        sudo modprobe -r iwlmvm
-        sudo modprobe -r iwlwifi
-    fi
+	fi
+	
 done
 
 echo "DONE - WIFI SHOULD RESTART NOW."
