@@ -55,7 +55,7 @@ exitCode=$?
         echo "OKAY - $interface is up"
     else
         wifiOK=false
-        echo "OOPS - \"ip link set $interface up\" should return 0. Returned: $initialExitCode"
+        echo "OOPS - \"ip link set $interface up\" should return 0. Returned: $exitCode"
     fi
 
 # If wifi is okay, then say so and return; otherwise the script will continue.
@@ -96,7 +96,7 @@ while true; do
 	    sleep 2
 
         echo "----Removing WIFI Modules"
-        sudo rmmod iwlmvm
+        sudo modprobe -r iwlmvm
         
 	    # Reprobe the driver modules in case we have removed them in a failed attempt to wake the network card.
         echo '----Re-probing Modules'
@@ -119,7 +119,7 @@ while true; do
         sudo rfkill unblock $wifiId
 
         # Get new interface name - it may change after dropping!
-		interface=$(nmcli device | grep wifi | awk '{ print $1 }')
+	interface=$(nmcli device | grep wifi | awk '{ print $1 }')
         
         # Bring the wireless network interface up.
         echo "Attempting to set up interface: $interface"
@@ -131,8 +131,8 @@ while true; do
         echo "----Device UP status: $exitCode"
         if [ $exitCode -eq 0 ]; then
             # This should be the default for wireless devices as it is well documented that enabling power management causes problems.
-			echo "Disabling Power Management"
-			sudo iwconfig $interface power off
+	    echo "Disabling Power Management"
+	    sudo iwconfig $interface power off
             # The exit code will be the exit code of our attempt at turning power management off for the interface.
             break
         fi
